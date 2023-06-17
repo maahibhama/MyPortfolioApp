@@ -2,9 +2,9 @@ name: Xcode - Build and Analyze
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ['main']
   pull_request:
-    branches: [ "main" ]
+    branches: ['main']
 
 jobs:
   build:
@@ -19,28 +19,25 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16.14.0
-          cache: "yarn"
-
+          cache: 'yarn'
 
       - name: Install Node modules
         run: yarn ci
-  
+
       - name: Setup Ruby (bundle)
         uses: ruby/setup-ruby@v1
         with:
-            ruby-version: 2.6
-            bundler-cache: true
+          ruby-version: 2.6
+          bundler-cache: true
 
       - name: Restore Pods cache
         uses: actions/cache@v3
         with:
-            path: |
-              ios/Pods
-              ~/Library/Caches/CocoaPods
-              ~/.cocoapods
-              key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
-              restore-keys: |
-                ${{ runner.os }}-pods-
+          path: |
+            ios/Pods
+            key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+            restore-keys: |
+              ${{ runner.os }}-pods-
 
       - name: Install pod dependencies
         run: cd ios && pod install
