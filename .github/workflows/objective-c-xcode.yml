@@ -11,18 +11,29 @@ jobs:
     name: Build and analyse default scheme using xcodebuild command
     runs-on: macos-latest
 
+    defaults: 
+      run:
+        working-directory: ios
+
     steps:
-      - name: Checkout
+      - name: Checkout git repository
         uses: actions/checkout@v3
-
-      - name: Use Node.js 16.14.0
-        uses: actions/setup-node@v3
+      
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      
+      - name: Restore node_modules from cache
+        uses: actions/cache@v3
+        id: yarn-cache
         with:
-          node-version: 16.14.0
-          cache: 'yarn'
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
 
-      - name: Install Node modules
-        run: yarn ci
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile --network-timeout 300000
 
       - name: Setup Ruby (bundle)
         uses: ruby/setup-ruby@v1
@@ -35,12 +46,14 @@ jobs:
         with:
           path: |
             ios/Pods
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
             key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
             restore-keys: |
               ${{ runner.os }}-pods-
 
       - name: Install pod dependencies
-        run: cd ios && pod install
+        run: cd ios && pod install --repo-update && cd ..
 
       - name: Set Default Scheme
         run: |
